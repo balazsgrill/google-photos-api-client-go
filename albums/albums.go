@@ -4,9 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
+
 	"github.com/gphotosuploader/googlemirror/api/photoslibrary/v1"
 	"google.golang.org/api/googleapi"
-	"net/http"
 )
 
 // An Album represents a Google Photos album.
@@ -182,9 +183,12 @@ func (s *Service) GetByTitle(ctx context.Context, title string) (*Album, error) 
 }
 
 // List lists all albums in created by this app.
-func (s *Service) List(ctx context.Context) ([]Album, error) {
+func (s *Service) List(ctx context.Context, excludeUserCreatedAlbums bool) ([]Album, error) {
 	var result []Album
-	albumsListCall := s.photos.List().PageSize(maxAlbumsPerPage).ExcludeNonAppCreatedData()
+	albumsListCall := s.photos.List().PageSize(maxAlbumsPerPage)
+	if excludeUserCreatedAlbums {
+		albumsListCall = albumsListCall.ExcludeNonAppCreatedData()
+	}
 	err := albumsListCall.Pages(ctx, func(response *photoslibrary.ListAlbumsResponse) error {
 		for _, res := range response.Albums {
 			result = append(result, toAlbum(res))
