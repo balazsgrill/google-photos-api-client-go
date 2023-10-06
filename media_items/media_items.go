@@ -3,8 +3,9 @@ package media_items
 import (
 	"context"
 	"fmt"
-	"github.com/gphotosuploader/googlemirror/api/photoslibrary/v1"
 	"net/http"
+
+	"github.com/gphotosuploader/googlemirror/api/photoslibrary/v1"
 )
 
 // A MediaItem represents a media item (e.g. photo, video etc.) in
@@ -206,6 +207,32 @@ func (s *Service) PaginatedList(ctx context.Context, options *PaginatedListOptio
 	}
 
 	return toMediaItems(response.MediaItems), response.NextPageToken, nil
+}
+
+// List list all media items for given filters.
+func (s *Service) List(ctx context.Context, filters *photoslibrary.Filters) ([]*MediaItem, error) {
+	req := &photoslibrary.SearchMediaItemsRequest{
+		PageSize: maxMediaItemsPerPage,
+		Filters:  filters,
+	}
+
+	photosMediaItems := make([]*photoslibrary.MediaItem, 0)
+	appendResultsFn := func(result *photoslibrary.SearchMediaItemsResponse) error {
+		photosMediaItems = append(photosMediaItems, result.MediaItems...)
+		return nil
+	}
+
+	if err := s.photos.Search(req).Pages(ctx, appendResultsFn); err != nil {
+		return nil, fmt.Errorf("listing media items for filters %+v: %w", filters, err)
+	}
+
+	mediaItems := make([]*MediaItem, len(photosMediaItems))
+	for i, item := range photosMediaItems {
+		mi := toMediaItem(item)
+		mediaItems[i] = &mi
+	}
+
+	return mediaItems, nil
 }
 
 // ListByAlbum list all media items in the specified album.
