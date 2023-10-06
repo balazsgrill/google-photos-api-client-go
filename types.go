@@ -2,8 +2,10 @@ package gphotos
 
 import (
 	"context"
+
 	"github.com/gphotosuploader/google-photos-api-client-go/v3/albums"
 	"github.com/gphotosuploader/google-photos-api-client-go/v3/media_items"
+	"github.com/gphotosuploader/googlemirror/api/photoslibrary/v1"
 )
 
 // OAuth2 scopes used by this API.
@@ -41,6 +43,7 @@ type MediaItemsService interface {
 	CreateToAlbum(ctx context.Context, albumId string, mediaItem media_items.SimpleMediaItem) (*media_items.MediaItem, error)
 	CreateManyToAlbum(ctx context.Context, albumId string, mediaItems []media_items.SimpleMediaItem) ([]*media_items.MediaItem, error)
 	Get(ctx context.Context, mediaItemId string) (*media_items.MediaItem, error)
+	List(ctx context.Context, filters *photoslibrary.Filters) ([]*media_items.MediaItem, error)
 	ListByAlbum(ctx context.Context, albumId string) ([]*media_items.MediaItem, error)
 	PaginatedList(ctx context.Context, options *media_items.PaginatedListOptions) (mediaItems []media_items.MediaItem, nextPageToken string, err error)
 }
